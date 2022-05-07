@@ -40,4 +40,8 @@ contract Treasure is AccessControl {
         require(address(this).balance > 0, "There is no ETH to send");
         owner.transfer(address(this).balance);
     } 
+
+    receive() external payable {
+
+    }
 } 

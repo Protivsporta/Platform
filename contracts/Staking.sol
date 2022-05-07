@@ -54,6 +54,7 @@ contract Staking is AccessControl {
 
     function unstake() public onlyWithoutActiveProposals() {
         require(block.timestamp - stakers[msg.sender].startingTimestamp > unstakeFrozenTime, "You can not unstake tokens now, please try later");
+        require(stakers[msg.sender].stake > 0, "You don't have tokens to unstake");
         uint256 currentStake = stakers[msg.sender].stake;
         claim();
         stakers[msg.sender].stake = 0;

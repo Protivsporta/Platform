@@ -27,12 +27,23 @@ contract ACDMPlatform is AccessControl {
     bytes32 public constant DAORole = keccak256(abi.encodePacked("DAO"));
 
 
-    constructor (address _acdmTokenAddress, address _daoContract, address payable _treasureContractAddress, uint256 _roundTime) {
+    constructor (
+        address _acdmTokenAddress, 
+        address _daoContract, 
+        address payable _treasureContractAddress, 
+        uint256 _roundTime,
+        uint8 _firstRefRoyaltyInSaleRound,
+        uint8 _secondRefRoyaltyInSaleRound,
+        uint8 _royaltyInTradeRound) {
         acdmToken = ACDMToken(_acdmTokenAddress);
         _grantRole(DAORole, _daoContract);
         acdmTokenAddress = _acdmTokenAddress;
         treasureContracAddress = _treasureContractAddress;
         roundTime = _roundTime;
+        firstRefRoyaltyInSaleRound = _firstRefRoyaltyInSaleRound;
+        secondRefRoyaltyInSaleRound = _secondRefRoyaltyInSaleRound;
+        royaltyInTradeRound = _royaltyInTradeRound;
+        referals[msg.sender] = payable(msg.sender);
     }
 
     struct Order {
@@ -41,9 +52,9 @@ contract ACDMPlatform is AccessControl {
         address payable owner;
     }
 
-    mapping (uint256 => Order) ordersList;
+    mapping (uint256 => Order) public ordersList;
 
-    mapping(address => address payable) referals; // account to his referal
+    mapping(address => address payable) public referals; // account to his referal
 
     enum Round { Trade, Sale }
     Round public round;
@@ -66,15 +77,15 @@ contract ACDMPlatform is AccessControl {
 
     function startTradeRound() public onlySaleRound() {
         require(block.timestamp > changeRoundTimeStamp + roundTime || amountOfTokensToSaleInRound == 0, "Sale round is not finished yet");
-        acdmToken.burn(acdmTokenAddress, amountOfTokensToSaleInRound);
+        acdmToken.burn(address(this), amountOfTokensToSaleInRound);
         round = Round.Trade;
         changeRoundTimeStamp = block.timestamp;
         acdmTokenPrice = (acdmTokenPrice * 103 / 100) + 14e11 wei;
     }
 
     function buyACDM() public payable onlySaleRound() {
-        require(amountOfTokensToSaleInRound > 0, "Sold out");
         uint256 amountOfTokens = msg.value / acdmTokenPrice;
+        require(amountOfTokensToSaleInRound >= amountOfTokens, "Unsufficient token balance on contract");
         amountOfTokensToSaleInRound -= amountOfTokens;
         if(referals[msg.sender] != address(0)) {
             referals[msg.sender].transfer(msg.value * firstRefRoyaltyInSaleRound / 100); // send royalty to first referal
@@ -103,7 +114,7 @@ contract ACDMPlatform is AccessControl {
     function fillOrder(uint256 _orderID) public payable onlyTradeRound() {
         require(ordersList[_orderID].owner != address(0), "This order does not exist");
         uint256 amountOfTokens = msg.value / ordersList[_orderID].priceInEth;
-        require(amountOfTokens <= ordersList[_orderID].actualAmount, "Insufficient funds on order");
+        //require(amountOfTokens <= ordersList[_orderID].actualAmount, "Insufficient funds on order");
         amountOfETHFilledInTradeRound += msg.value;
         ordersList[_orderID].actualAmount -= amountOfTokens;
         if(referals[ordersList[_orderID].owner] != address(0)) {
