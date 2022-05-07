@@ -62,7 +62,7 @@ describe("Platform", function() {
         await treasure.deployed();
 
         const Platform = await ethers.getContractFactory("ACDMPlatform", Bob);
-        platform = await Platform.deploy(acdmToken.address, dao.address, treasure.address, roundTime, firstRefRoyaltyInSaleRound, secondRefRoyaltyInSaleRound, royaltyInTradeRound);
+        platform = await Platform.deploy(acdmToken.address, Mike.address, treasure.address, roundTime, firstRefRoyaltyInSaleRound, secondRefRoyaltyInSaleRound, royaltyInTradeRound);
         await platform.deployed();
 
         await staking.setDAOContractAddress(dao.address);
@@ -75,6 +75,38 @@ describe("Platform", function() {
 
         it("Should be deployed", async function() {
             expect(staking.address).to.be.properAddress;
+        })
+
+        describe("Staking only DAO functions", function() {
+
+            it("Should change reward percentage", async function() {
+                await staking.setDAOContractAddress(Mike.address);
+
+                await staking.connect(Mike).changeRewardPercentage(10);
+
+                expect(await staking.rewardPercentage())
+                .to.be.equal(10)
+            })
+
+            it("Should revert error message because of DAO missing role", async function() {
+                await expect(staking.connect(Mike).changeRewardPercentage(10))
+                .to.be.revertedWith("account 0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc is missing role 0xd0a4ad96d49edb1c33461cebc6fb2609190f32c904e3c3f5877edb4488dee91e");
+            })
+
+            it("Should change unstake frozen time", async function() {
+                await staking.setDAOContractAddress(Mike.address);
+
+                await staking.connect(Mike).changeUnstakeFrozenTime(50000);
+
+                expect(await staking.unstakeFrozenTime())
+                .to.be.equal(50000)
+            })
+
+            it("Should revert error message because of DAO missing role", async function() {
+                await expect(staking.connect(Mike).changeUnstakeFrozenTime(50000))
+                .to.be.revertedWith("account 0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc is missing role 0xd0a4ad96d49edb1c33461cebc6fb2609190f32c904e3c3f5877edb4488dee91e");
+            })
+
         })
     
         describe("Stake", function() {
@@ -576,6 +608,36 @@ describe("Platform", function() {
                 .to.changeTokenBalance(acdmToken, Alice, 50)
             })
         })
+
+        describe("Platform only DAO functions", function() {
+
+            it("Should change sale round royalties", async function() {
+                await platform.connect(Mike).changeSaleRoundRoyalties(10, 6);
+
+                expect(await platform.firstRefRoyaltyInSaleRound())
+                .to.be.equal(10)
+
+                expect(await platform.secondRefRoyaltyInSaleRound())
+                .to.be.equal(6)
+            })
+
+            it("Shold revert error message because missing DAO role", async function() {
+                await expect(platform.changeSaleRoundRoyalties(10, 6))
+                .to.be.revertedWith("account 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266 is missing role 0xd0a4ad96d49edb1c33461cebc6fb2609190f32c904e3c3f5877edb4488dee91e")
+            })
+
+            it("Should change trade round royalties", async function() {
+                await platform.connect(Mike).changeTradeRoundRoyalties(10);
+
+                expect(await platform.royaltyInTradeRound())
+                .to.be.equal(10)
+            })
+
+            it("Shold revert error message because missing DAO role", async function() {
+                await expect(platform.changeTradeRoundRoyalties(10))
+                .to.be.revertedWith("account 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266 is missing role 0xd0a4ad96d49edb1c33461cebc6fb2609190f32c904e3c3f5877edb4488dee91e")
+            })
+        })
     })
 
     describe("Treasure", function() {
@@ -674,6 +736,13 @@ describe("Platform", function() {
             await expect(treasure.connect(Mike).swapETHToACDMTokensANDBurn(20, 20000))
             .to.be.revertedWith("There is no ETH to swap")
          })
-         
+    })
+
+    describe("ACDM token", function() {
+
+        it("Should return decimals of token", async function() {
+            expect(await acdmToken.decimals())
+            .to.be.equal(6)
+        })
     })
 })
