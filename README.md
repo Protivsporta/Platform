@@ -1,46 +1,43 @@
-# Advanced Sample Hardhat Project
+# Token platform contract
 
-This project demonstrates an advanced Hardhat use case, integrating other tools commonly used alongside Hardhat in the ecosystem.
+This is token platform with functionality to sale tokens, to P2P trade after sale round, to stake your tokens, to vote by DAO mechanism, also included treasure contract for fee accumulation and token price control.
 
-The project comes with a sample contract, a test for that contract, a sample script that deploys that contract, and an example of a task implementation, which simply lists the available accounts. It also comes with a variety of other tools, preconfigured to work with the project code.
+All contracts deployed to Ethereum Rinkeby test network
 
-Try running some of the following tasks:
+Platform contract: 0xd0cb5041D5Bc068A50034636CbB44683CdD03B1c
+
+Staking contract: 0x8E833511fA8778C67958420B60012fB441278CE2
+
+DAO contract: 0x587e7bc2Edef7eA63E0593fa17241F74a8d1d370
+
+Treasure contract: 0xedcC7A88916D9b4d24d4b75002728b14F853B43e
+
+Tasks list:
 
 ```shell
-npx hardhat accounts
-npx hardhat compile
-npx hardhat clean
-npx hardhat test
-npx hardhat node
-npx hardhat help
-REPORT_GAS=true npx hardhat test
-npx hardhat coverage
-npx hardhat run scripts/deploy.ts
-TS_NODE_FILES=true npx ts-node scripts/deploy.ts
-npx eslint '**/*.{js,ts}'
-npx eslint '**/*.{js,ts}' --fix
-npx prettier '**/*.{json,sol,md}' --check
-npx prettier '**/*.{json,sol,md}' --write
-npx solhint 'contracts/**/*.sol'
-npx solhint 'contracts/**/*.sol' --fix
+  addorder                      Add order to p2p sale of platform
+  buyacdm                       Buy ACDM tokens in Sale round
+  check                         Check whatever you need
+  clean                         Clears the cache and deletes all artifacts
+  compile                       Compiles the entire project, building all artifacts
+  console                       Opens a hardhat console
+  coverage                      Generates a code coverage report for tests
+  fillorder                     Buy ACDM tokens on trade round by order id
+  flatten                       Flattens and prints contracts and their dependencies
+  help                          Prints this message
+  node                          Starts a JSON-RPC server on top of Hardhat Network
+  register                      Register account and his ref to referal program
+  removeorder                   Remove order from p2p sale of platform
+  run                           Runs a user-defined script after compiling the project
+  sendeth_to_owner              Send all Treasure contract ETH to owner
+  startsaleround                Starts sale round, where you can buy tokens from platform
+  starttraderound               Starts trade round, where you can buy tokens from platform participants
+  swapeth_to_acdm_and_burn      Buy ACDM tokens from uniswap and burn them
+  test                          Runs mocha tests
+  typechain                     Generate Typechain typings for compiled contracts
+  verify                        Verifies contract on Etherscan
 ```
 
 # Etherscan verification
 
-To try out Etherscan verification, you first need to deploy a contract to an Ethereum network that's supported by Etherscan, such as Ropsten.
-
-In this project, copy the .env.example file to a file named .env, and then edit it to fill in the details. Enter your Etherscan API key, your Ropsten node URL (eg from Alchemy), and the private key of the account which will send the deployment transaction. With a valid .env file in place, first deploy your contract:
-
-```shell
-hardhat run --network ropsten scripts/deploy.ts
-```
-
-Then, copy the deployment address and paste it in to replace `DEPLOYED_CONTRACT_ADDRESS` in this command:
-
-```shell
-npx hardhat verify --network ropsten DEPLOYED_CONTRACT_ADDRESS "Hello, Hardhat!"
-```
-
-# Performance optimizations
-
-For faster runs of your tests and scripts, consider skipping ts-node's type checking by setting the environment variable `TS_NODE_TRANSPILE_ONLY` to `1` in hardhat's environment. For more details see [the documentation](https://hardhat.org/guides/typescript.html#performance-optimizations).
+All contracts verified on etherscan
