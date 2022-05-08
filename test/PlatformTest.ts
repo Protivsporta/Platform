@@ -424,6 +424,23 @@ describe("Platform", function() {
                 .to.be.revertedWith("Trade round is not finished yet")
             })
 
+            it("Should set amount of tokens to sale to 0 because of trade round 0 amount", async function() {
+                await platform.startSaleRound();
+
+                await network.provider.send("evm_increaseTime", [1000000]);
+                await network.provider.send("evm_mine");
+
+                await platform.startTradeRound();
+
+                await network.provider.send("evm_increaseTime", [1000000]);
+                await network.provider.send("evm_mine");
+
+                await platform.startSaleRound();
+
+                expect((await platform.amountOfTokensToSaleInRound()))
+                .to.be.equal(0)
+            })
+
             it("Should change round status to Trade", async function() {
                 await platform.startSaleRound();
 
@@ -606,6 +623,66 @@ describe("Platform", function() {
 
                 await expect(() => platform.connect(Alice).fillOrder(0, { value: 50 }))
                 .to.changeTokenBalance(acdmToken, Alice, 50)
+            })
+
+            it("Should transfer all fee to treasure contract", async function() {
+                const amountOfTransfer: BigNumber = utils.parseEther("0.1");
+                await platform.startSaleRound();
+                await acdmToken.connect(Alice).approve(platform.address, 100000);
+
+                await platform.connect(Alice).buyACDM({ value: amountOfTransfer });
+
+                await network.provider.send("evm_increaseTime", [1000000]);
+                await network.provider.send("evm_mine");
+
+                await platform.startTradeRound();
+
+                await platform.connect(Alice).addOrder(100, 1);
+
+                await expect(() => platform.connect(Alice).fillOrder(0, { value: 50 }))
+                .to.changeEtherBalance(treasure, 2)
+            })
+
+            it("Should transfer all fee to referrals", async function() {
+                const amountOfTransfer: BigNumber = utils.parseEther("0.1");
+                await platform.startSaleRound();
+                await acdmToken.connect(Alice).approve(platform.address, 100000);
+
+                await platform.connect(Alice).register(Bob.address);
+
+                await platform.connect(Alice).buyACDM({ value: amountOfTransfer });
+
+                await network.provider.send("evm_increaseTime", [1000000]);
+                await network.provider.send("evm_mine");
+
+                await platform.startTradeRound();
+
+                await platform.connect(Alice).addOrder(100, 1);
+
+                await expect(() => platform.connect(Alice).fillOrder(0, { value: 50 }))
+                .to.changeEtherBalance(Bob, 2)
+            })
+
+            it("Should remove order from order list", async function() {
+                const amountOfTransfer: BigNumber = utils.parseEther("0.1");
+                await platform.startSaleRound();
+                await acdmToken.connect(Alice).approve(platform.address, 100000);
+
+                await platform.connect(Alice).register(Bob.address);
+
+                await platform.connect(Alice).buyACDM({ value: amountOfTransfer });
+
+                await network.provider.send("evm_increaseTime", [1000000]);
+                await network.provider.send("evm_mine");
+
+                await platform.startTradeRound();
+
+                await platform.connect(Alice).addOrder(100, 1);
+
+                await platform.connect(Alice).fillOrder(0, { value: 100 })
+
+                expect((await platform.ordersList(0)).priceInEth)
+                .to.be.equal(0)
             })
         })
 
