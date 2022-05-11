@@ -24,7 +24,7 @@ contract ACDMPlatform is AccessControl {
     address payable treasureContracAddress;
     ACDMToken public acdmToken;
 
-    bytes32 public constant ownable = keccak256(abi.encodePacked("ownable"));
+    bytes32 public constant DAORole = keccak256(abi.encodePacked("DAO"));
 
 
     constructor (
@@ -136,12 +136,12 @@ contract ACDMPlatform is AccessControl {
 
     // DAO functions
 
-    function changeSaleRoundRoyalties(uint8 _firstRefRoyalty, uint8 _secondRefRoyalty) external onlyRole(ownable) {
+    function changeSaleRoundRoyalties(uint8 _firstRefRoyalty, uint8 _secondRefRoyalty) external onlyRole(DAORole) {
         firstRefRoyaltyInSaleRound = _firstRefRoyalty;
         secondRefRoyaltyInSaleRound = _secondRefRoyalty;
     }
 
-    function changeTradeRoundRoyalties(uint8 _refRoyalty) external onlyRole(ownable) {
+    function changeTradeRoundRoyalties(uint8 _refRoyalty) external onlyRole(DAORole) {
         royaltyInTradeRound = _refRoyalty;
     }
 
